@@ -15,15 +15,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 // }
 // Class decorator : Function = (constructor : any) => {  }
 // nếu class decorator trả về 1 class mới thì đối tượng sẽ bị ghi đè bởi class đó 
-function logger(target) {
-    return class extends target {
-        constructor() {
-            super(...arguments);
-            this.address = "hà nội";
-            this.id = 0; // ghi đè các thuộc tính đã có
-            // name : string =""; // ghi đè các thuộc tính đã có
-            // age : number= 0; // ghi đè các thuộc tính đã có
-        }
+function wrapper(name) {
+    return function logger(target) {
+        return class extends target {
+            constructor() {
+                super(...arguments);
+                this.address = "hà nội";
+                this.id = 0; // ghi đè các thuộc tính đã có
+                // name : string =""; // ghi đè các thuộc tính đã có
+                // age : number= 0; // ghi đè các thuộc tính đã có
+            }
+        };
     };
 }
 // Method decorator 
@@ -45,6 +47,23 @@ function beforeSum(target, propertyKey, descriptor) {
         return oldFun(...args);
     };
 }
+// Property decorator 
+// Accessor decorator (người giám sát, kiểm soát)
+function x2(target, propertyKey) {
+    console.log(target);
+    console.log(propertyKey);
+}
+// tạo 1 hàm pow return về decorator method 
+function pow(value) {
+    // khia báo các biến như các thuộc tính 
+    return function (target, propertyKey, descriptor) {
+        let old = descriptor.value;
+        descriptor.value = function (...args) {
+            return Math.pow(old(...args), value);
+        };
+    };
+}
+// Decorator Factories : kĩ thuật truyền tham số cho 1 decorator thông qua khia niệm closure 
 let Student = class Student {
     constructor(id, name, age) {
         this.id = id;
@@ -58,19 +77,41 @@ let Student = class Student {
     sum(a, b) {
         return a + b;
     }
+    // tính lũy thừa
+    luyThua(a) {
+        return a;
+    }
+    // sử dụng từ  khóa get / set
+    get id1() {
+        console.log("gọi get");
+        return this.id;
+    }
+    set id1(id) {
+        console.log("gọi set");
+        this.id = id;
+    }
 };
+__decorate([
+    x2
+], Student.prototype, "age", void 0);
 __decorate([
     follow
 ], Student.prototype, "greet", null);
 __decorate([
     beforeSum
 ], Student.prototype, "sum", null);
+__decorate([
+    pow(3)
+], Student.prototype, "luyThua", null);
 Student = __decorate([
-    logger
+    wrapper("hung")
 ], Student);
 let student = new Student(1, "hung", 19); // chạy trước
 console.log(student);
 student.greet();
 console.log(student.sum(1, 2));
+student.id1 = 10;
+console.log(student.age);
+console.log(student.luyThua(5)); // 25
 // Các loại decorator :
 //  Decorator Factories
